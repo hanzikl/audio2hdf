@@ -1,5 +1,6 @@
 import os
 import subprocess as sp
+import soundfile
 
 FFMPEG_BIN = "ffmpeg"
 
@@ -39,3 +40,10 @@ class Importer:
         command = [FFMPEG_BIN, '-i', mp3_path, ogg_path]
         pipe = sp.Popen(command, shell=False, stdout=sp.PIPE)
         pipe.wait()
+
+    def read_data_from_ogg(self, filename):
+        filepath = os.path.join(self.directory, filename)
+        data, sample_rate = soundfile.read(filepath)
+
+        return data
+
