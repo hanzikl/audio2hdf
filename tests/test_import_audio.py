@@ -6,7 +6,7 @@ Positive testing - I know it is bad, but I do not want to spent time with negati
 """
 
 
-class Mp3TestSet(unittest.TestCase):
+class AudioImportTestSet(unittest.TestCase):
     def setUp(self):
         print("SETUP!")
         self.test_directory = "/home/hanz/tmp/sounds/accents/"
@@ -38,3 +38,12 @@ class Mp3TestSet(unittest.TestCase):
     def test_initialize(self):
         self.importer.initialize()
         self.assertTrue(self.importer.is_initialized())
+
+    def test_read_data(self):
+        self.importer.initialize()
+        assert self.importer.__len__() > 0
+        data_first = self.importer.__getitem__(0)
+        data_last = self.importer.__getitem__(self.importer.__len__() - 1)
+
+        assert data_first[0].shape[0] == self.importer.cut_interval
+        assert data_last[0].shape[0] == self.importer.cut_interval

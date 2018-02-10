@@ -1,7 +1,8 @@
 import os
-import subprocess as sp
-import soundfile
 import re
+import subprocess as sp
+
+import soundfile
 
 FFMPEG_BIN = "ffmpeg"
 
@@ -10,6 +11,11 @@ Class for importing mp3 audio to hdf5 format using
 - preprocessing (conversion to ogg format)
 - import ogg to python
 """
+
+
+def transform_data(data):
+    # normalization to the interval [0, 1]
+    return (data + 1) / 2
 
 
 class Importer:
@@ -29,6 +35,8 @@ class Importer:
         assert cutinterval > overlap, "Cutinterval must be longer than overlap"
         self.cut_interval = cutinterval
         self.overlap = overlap
+
+        self.cached_data = (None, None)
 
     def get_files_with_extension(self, extension):
         return [file_name for file_name in os.listdir(self.directory) if file_name.endswith(extension)]
@@ -84,7 +92,30 @@ class Importer:
             audio_file_index = self.parse_index(ogg_file)
             # count samples in file and create mapping
 
-            for i in range(0, data.shape[0], self.cut_interval - self.overlap):
+            for i in range(0, data.shape[0] - self.cut_interval, self.cut_interval - self.overlap):
                 data_mapping.append((ogg_file, audio_file_index, i))
 
         self.data_mapping = data_mapping
+
+    def cache_data(self, filename):
+
+        if self.cached_data[0] != filename:
+            data, _ = self.read_data_from_ogg(filename)
+            self.cached_data = (filename, data)
+
+    def read_cached_data(self, filename, start_index, end_index):
+        self.cache_data(filename)
+        if (len(self.cached_data[1].shape) > 1) and (self.cached_data[1].shape[1] > 1):
+            # more than one audio channel
+            return self.cached_data[1][start_index: end_index, 0]
+        else:
+            # one audio channel
+            return self.cached_data[1][start_index: end_index]
+
+    def __len__(self):
+        return len(self.data_mapping)
+
+    def __getitem__(self, item):
+        mapping = self.data_mapping[item]
+        data = transform_data(self.read_cached_data(mapping[0], mapping[2], mapping[2] + self.cut_interval))
+        return data, mapping[1]
