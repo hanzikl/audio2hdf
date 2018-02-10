@@ -1,6 +1,7 @@
 import os
 import subprocess as sp
 import soundfile
+import re
 
 FFMPEG_BIN = "ffmpeg"
 
@@ -46,4 +47,8 @@ class Importer:
         data, sample_rate = soundfile.read(filepath)
 
         return data
+
+    def parse_index(self, filename:str):
+        index = int(re.findall(r'\d+\.mp3$', filename)[0].replace('.mp3', ''))
+        return index
 

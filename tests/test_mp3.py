@@ -2,6 +2,9 @@ import unittest
 import audio2hdf5.importer
 
 
+"""
+Positive testing - I know it is bad, but I do not want to spent time with negative test cases for now :-)
+"""
 class Mp3TestSet(unittest.TestCase):
 
     def setUp(self):
@@ -27,4 +30,10 @@ class Mp3TestSet(unittest.TestCase):
         data = self.importer.read_data_from_ogg(filename)
 
         self.assertIsNotNone(data)
+
+    def test_name_to_index(self):
+        sample_names = [("english1.mp3", 1), ("english22.mp3", 22), ("english001.mp3", 1)]
+        for (name, idx) in sample_names:
+            self.assertEqual(self.importer.parse_index(name), idx)
+
 
